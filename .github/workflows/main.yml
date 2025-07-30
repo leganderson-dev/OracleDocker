@@ -83,3 +83,14 @@ jobs:
       run: |
         /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong@Passw0rd' -Q "SELECT name FROM sys.databases" -b
         echo "Listed all databases"
+
+    - name: Run Flyway migration on SSC_Dev
+      run: |
+        docker run --rm --network mssql-network \
+          -v $(pwd)/sql:/flyway/sql \
+          redgate/flyway \
+          -url=jdbc:sqlserver://mssql:1433;databaseName=SSC_Dev \
+          -user=SA \
+          -password=YourStrong@Passw0rd \
+          migrate
+        echo "Flyway migration completed for SSC_Dev"
