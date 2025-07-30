@@ -1,6 +1,9 @@
-name: MSSQL Restore Demo
+name: SQL Server Restore Demo
 
 on:
+  push:
+    branches:
+    - main
   workflow_dispatch:
 
 
@@ -12,9 +15,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Build SQL Server Docker image with backup
+    - name: Build Docker image
       run: |
-        docker build -t mssql-ssc-dev -f Dockerfile .
+        docker build -t mssql-ssc-dev .
 
     - name: Run SQL Server container
       run: |
@@ -24,10 +27,22 @@ jobs:
           -p 1433:1433 \
           mssql-ssc-dev
 
-    - name: Wait for SQL Server and run restore script
+    - name: Wait for SQL Server to start
+      run: |
+        for i in {1..30}; do
+          if docker exec mssql-container /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT 1" > /dev/null 2>&1; then
+            echo "SQL Server is ready"
+            break
+          else
+            echo "Waiting for SQL Server..."
+            sleep 5
+          fi
+        done
+
+    - name: Run restore script
       run: |
         docker exec mssql-container /bin/bash /tmp/restore.sh
 
-    - name: Show restored database list (confirmation)
+    - name: Confirm database restored
       run: |
         docker exec mssql-container /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT name FROM sys.databases"
