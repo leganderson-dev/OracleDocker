@@ -30,7 +30,7 @@ COPY --from=tools /opt/mssql-tools/bin/bcp /usr/bin/bcp
 
 # Copy restore script and backup file
 COPY restore.sh /restore.sh
-COPY SSC_Prod.bak /var/opt/mssql/backups/SSC_Prod.bak
+COPY SSC.bak /var/opt/mssql/backups/SSC.bak
 
 RUN chmod +x /restore.sh
 
