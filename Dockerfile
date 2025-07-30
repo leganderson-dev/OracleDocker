@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/mssql/server:2022-latest
 
 ENV ACCEPT_EULA=Y
-ENV SA_PASSWORD=YourStrong!Passw0rd
+ENV SA_PASSWORD=Redg@te1
 
 # Install sqlcmd
 RUN apt-get update && apt-get install -y curl gnupg apt-transport-https \
@@ -12,12 +12,12 @@ RUN apt-get update && apt-get install -y curl gnupg apt-transport-https \
   && ln -s /opt/mssql-tools/bin/bcp /usr/bin/bcp \
   && apt-get clean
 
-# Copy the backup file into the container
+# Copy the backup into the container
 COPY BKP/SSC.bak /var/opt/mssql/backup/SSC.bak
 
-# Restore DB after startup
+# Restore the database on container startup
 CMD /opt/mssql/bin/sqlservr & \
     sleep 30 && \
-    sqlcmd -S localhost -U SA -P "YourStrong!Passw0rd" \
-      -Q "RESTORE DATABASE SSC FROM DISK = '/var/opt/mssql/backup/SSC.bak' WITH REPLACE, MOVE 'SSC' TO '/var/opt/mssql/data/SSC.mdf', MOVE 'SSC_log' TO '/var/opt/mssql/data/SSC_log.ldf'" && \
-    tail -f /dev/null
+    sqlcmd -S localhost -U SA -P 'Redg@te1' \
+      -Q "RESTORE DATABASE SSC_Dev FROM DISK = '/var/opt/mssql/backup/SSC.bak' WITH REPLACE, MOVE 'SSC' TO '/var/opt/mssql/data/SSC_Dev.mdf', MOVE 'SSC_log' TO '/var/opt/mssql/data/SSC_Dev_log.ldf'" \
+    && tail -f /dev/null

@@ -1,4 +1,4 @@
-name: MSSQL-Restore-Bak
+name: MSSQL Restore - SSC_Dev
 
 on:
   push:
@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
     - name: Build custom MSSQL Docker image
       run: |
         docker build -t custom-mssql-restored .
 
-    - name: Run MSSQL container
+    - name: Run MSSQL Container
       run: |
         docker run -d --name mssql-container \
           -e 'ACCEPT_EULA=Y' \
@@ -25,17 +25,17 @@ jobs:
           -p 1433:1433 \
           custom-mssql-restored
 
-    - name: Wait for SQL Server to be ready
+    - name: Wait for SQL Server to be available
       run: |
         echo "Waiting for SQL Server to be available..."
         for i in {1..30}; do
-          docker exec mssql-container /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Redg@te1" -Q "SELECT name FROM sys.databases" && break
+          docker exec mssql-container sqlcmd -S localhost -U SA -P "Redg@te1" -Q "SELECT name FROM sys.databases" && break
           echo "Retry $i..."
           sleep 5
         done
 
-    - name: Verify database restore
+    - name: Verify SSC_Dev exists
       run: |
-        docker exec mssql-container /opt/mssql-tools/bin/sqlcmd \
+        docker exec mssql-container sqlcmd \
           -S localhost -U SA -P "Redg@te1" \
           -Q "SELECT name FROM sys.databases WHERE name = 'SSC_Dev'"
