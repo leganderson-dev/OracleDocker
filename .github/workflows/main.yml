@@ -5,7 +5,18 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+env:
+  FLYWAY_EMAIL: anderson.rangel@red-gate.com
+  FLYWAY_TOKEN: iaDF3IS+rC5+U6mfk5MY62cH6KyDWWwktQCQUXZqOLIzBVi2WAfEFIYTRzq8zkMst0xyCli7L++Kw5RXdin/Uw==
+  FLYWAY_IMAGE: redgate/flyway:latest
 
+  FLYWAY_HOST: localhost
+  FLYWAY_DATABASE: SSC_Dev
+  FLYWAY_PORT: 1433
+  FLYWAY_ENCRYPT: true
+  FLYWAY_TRUST_CERT: true
+
+  
 jobs:
   run-mssql-container:
     runs-on: ubuntu-latest
@@ -90,11 +101,14 @@ jobs:
           -v "${{ github.workspace }}/migrations:/flyway/sql" \
           -v "${{ github.workspace }}:/flyway/conf:ro" \
           -v "${{ github.workspace }}/reports:/flyway/reports" \
-          redgate/flyway:latest \
-          info \
-          -url="jdbc:sqlserver://mssql:1433;databaseName=SSC_Dev;encrypt=false;trustServerCertificate=true" \
-          -user="SA" \
-          -password"="YourStrong@Passw0rd" \
-          -locations=filesystem:/flyway/sql \
+          ${FLYWAY_IMAGE} \
+          -url="jdbc:sqlserver://${FLYWAY_HOST}:${FLYWAY_PORT};databaseName=${FLYWAY_DATABASE};encrypt=${FLYWAY_ENCRYPT};trustServerCertificate=${FLYWAY_TRUST_CERT}" \
+          -user="${FLYWAY_USER}" \
+          -password="${FLYWAY_PASSWORD}" \
+          -locations="filesystem:/flyway/sql" \
+          -email="${FLYWAY_EMAIL}" \
+          -token="${FLYWAY_TOKEN}" \
+          auth -IAgreeToTheEula \
+          info migrate info
           
         echo "Flyway migration completed for SSC_Dev"
