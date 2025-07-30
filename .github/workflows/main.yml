@@ -1,43 +1,36 @@
-name: MSSQL Init with SQL Script
+name: MSSQL Init Container
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
-  init-db:
+  mssql-init:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Build Docker image with MSSQL and SQL script
+      - name: Build MSSQL Docker image
         run: docker build -t mssql-init .
 
-      - name: Start MSSQL container
+      - name: Run MSSQL container
         run: |
-          docker run -d --name mssql -p 1433:1433 mssql-init
+          docker run -d --name mssql-init \
+            -e 'ACCEPT_EULA=Y' \
+            -e 'SA_PASSWORD=Redg@te1' \
+            -p 1433:1433 \
+            mssql-init
 
-      - name: Wait for SQL Server to become ready
+      - name: Wait for SQL Server to be ready
         run: |
-          echo "Waiting for SQL Server to become ready..."
-          for i in {1..40}; do
-            docker logs mssql 2>&1 | tail -20
-            if docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT 1" &>/dev/null; then
-              echo "✅ SQL Server is ready!"
-              exit 0
-            fi
-            echo "⏳ Still waiting... ($i/40)"
+          echo "Waiting for SQL Server to start..."
+          for i in {1..30}; do
+            docker exec mssql-init /opt/mssql-tools/bin/sqlcmd \
+              -S localhost -U SA -P 'Redg@te1' -Q "SELECT 1" && break
             sleep 5
           done
-          echo "❌ SQL Server did not start in time" >&2
-          docker logs mssql
-          exit 1
 
-      - name: Verify SSC_Dev database exists
-        run: |
-          echo "🔎 Verifying created database..."
-          docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT name FROM sys.databases WHERE name = 'SSC_Dev'"
+      - name: Show SQL Server logs
+        run: docker logs mssql-init
