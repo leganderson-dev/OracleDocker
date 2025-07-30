@@ -1,28 +1,39 @@
-name: MSSQL Init
+name: Build and Run MSSQL
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build-and-run:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      - name: Build Docker image
-        run: docker build -t mssql-init .
+    - name: Build Docker image
+      run: |
+        docker build -t mssql-init .
 
-      - name: Run MSSQL container
-        run: |
-          docker run -d --name mssql-init \
-            -e "ACCEPT_EULA=Y" \
-            -e "SA_PASSWORD=Redg@te1" \
-            -p 1433:1433 \
-            mssql-init
+    - name: Run SQL Server Container
+      run: |
+        docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Redg@te1" -p 1433:1433 --name mssql -d mssql-init
 
-      - name: Check container logs
-        run: docker logs mssql-init
+    - name: Wait for SQL Server to be ready
+      run: |
+        echo "Waiting for SQL Server to become ready..."
+        for i in {1..30}; do
+          if docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT 1" &>/dev/null; then
+            echo "SQL Server is ready!"
+            exit 0
+          fi
+          sleep 5
+        done
+        echo "SQL Server did not start in time" >&2
+        docker logs mssql
+        exit 1
+
+    - name: Check databases
+      run: |
+        docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT name FROM sys.databases"
