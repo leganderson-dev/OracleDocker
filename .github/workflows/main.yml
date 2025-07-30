@@ -1,4 +1,4 @@
-name: SQL Server with Init Script
+name: SQL Server Init with Script
 
 on:
   push:
@@ -8,21 +8,30 @@ on:
 
 
 jobs:
-  run-sqlserver:
+  run-mssql-init:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout repository
       uses: actions/checkout@v4
 
     - name: Build SQL Server image
-      run: docker build -t sqlserver-init .
+      run: docker build -t mssql-init .
 
-    - name: Run SQL Server container
-      run: docker run -d --name sql-init -p 1433:1433 sqlserver-init
-
-    - name: Confirm DB created
+    - name: Start SQL Server container
       run: |
-        sleep 30
-        docker exec sql-init /opt/mssql-tools/bin/sqlcmd \
-          -S localhost -U SA -P 'Redg@te1' -Q "SELECT name FROM sys.databases"
+        docker run -d --name mssql-container -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Redg@te1' -p 1433:1433 mssql-init
+
+    - name: Wait for SQL Server to start
+      run: |
+        echo "Waiting for SQL Server to be ready..."
+        for i in {1..30}; do
+          docker exec mssql-container /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT 1" && break
+          sleep 5
+        done
+
+    - name: Run SQL initialization script
+      run: docker exec -i mssql-container /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' < createdb.sql
+
+    - name: Confirm DB was created
+      run: docker exec mssql-container /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT name FROM sys.databases"
