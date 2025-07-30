@@ -1,41 +1,19 @@
-# ============================
-# Stage 1 - Build tools image
-# ============================
-FROM mcr.microsoft.com/mssql/server:2022-latest AS tools
-
-USER root
-
-# Install dependencies and sqlcmd
-RUN apt-get update && apt-get install -y curl gnupg apt-transport-https \
-    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update && ACCEPT_EULA=Y apt-get install -y mssql-tools unixodbc-dev \
-    && apt-get clean
-
-# =============================
-# Stage 2 - Main MSSQL Image
-# =============================
-FROM mcr.microsoft.com/mssql/server:2022-latest AS final
+FROM mcr.microsoft.com/mssql/server:2022-latest
 
 ENV ACCEPT_EULA=Y
-ENV MSSQL_SA_PASSWORD=Redg@te1
-ENV MSSQL_PID=Developer
+ENV SA_PASSWORD=Redg@te1
 
-USER root
+# Copy the SQL script into the container
+COPY createdb.sql /init/createdb.sql
 
-# Copy tools from builder stage
-COPY --from=tools /opt/mssql-tools /opt/mssql-tools
-COPY --from=tools /opt/mssql-tools/bin/sqlcmd /usr/bin/sqlcmd
-COPY --from=tools /opt/mssql-tools/bin/bcp /usr/bin/bcp
-
-# Copy restore script and backup file
-COPY restore.sh /restore.sh
-COPY SSC.bak /var/opt/mssql/backups/SSC.bak
-
-RUN chmod +x /restore.sh
-
-# Make sure the backup directory exists
-RUN mkdir -p /var/opt/mssql/backups
-
-# Run SQL Server and restore in background
-CMD /bin/bash -c "/opt/mssql/bin/sqlservr & sleep 20 && /restore.sh && tail -f /dev/null"
+# Start SQL Server and run the SQL script
+CMD /bin/bash -c "\
+  /opt/mssql/bin/sqlservr & \
+  echo 'Waiting for SQL Server to start...'; \
+  sleep 20; \
+  until /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q 'SELECT 1' > /dev/null 2>&1; do \
+    echo 'Still waiting...'; sleep 2; \
+  done; \
+  echo 'Running init script...'; \
+  /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -i /init/createdb.sql; \
+  tail -f /dev/null"

@@ -1,4 +1,4 @@
-name: SQL Server Restore Demo
+name: SQL Server with Init Script
 
 on:
   push:
@@ -8,41 +8,21 @@ on:
 
 
 jobs:
-  restore-db:
+  run-sqlserver:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout repo
       uses: actions/checkout@v4
 
-    - name: Build Docker image
-      run: |
-        docker build -t mssql-ssc-dev .
+    - name: Build SQL Server image
+      run: docker build -t sqlserver-init .
 
     - name: Run SQL Server container
-      run: |
-        docker run -d --name mssql-container \
-          -e 'ACCEPT_EULA=Y' \
-          -e 'SA_PASSWORD=Redg@te1' \
-          -p 1433:1433 \
-          mssql-ssc-dev
+      run: docker run -d --name sql-init -p 1433:1433 sqlserver-init
 
-    - name: Wait for SQL Server to start
+    - name: Confirm DB created
       run: |
-        for i in {1..30}; do
-          if docker exec mssql-container /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT 1" > /dev/null 2>&1; then
-            echo "SQL Server is ready"
-            break
-          else
-            echo "Waiting for SQL Server..."
-            sleep 5
-          fi
-        done
-
-    - name: Run restore script
-      run: |
-        docker exec mssql-container /bin/bash /tmp/restore.sh
-
-    - name: Confirm database restored
-      run: |
-        docker exec mssql-container /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT name FROM sys.databases"
+        sleep 30
+        docker exec sql-init /opt/mssql-tools/bin/sqlcmd \
+          -S localhost -U SA -P 'Redg@te1' -Q "SELECT name FROM sys.databases"
