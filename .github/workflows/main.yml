@@ -88,9 +88,9 @@ jobs:
       run: |
         docker run --rm --network mssql-network \
           -v $(pwd)/sql:/flyway/sql \
-          redgate/flyway \
+          redgate/flyway:latest \
+          migrate \
           -url=jdbc:sqlserver://mssql:1433;databaseName=SSC_Dev \
           -user=SA \
-          -password=YourStrong@Passw0rd \
-          migrate
+          -password=YourStrong@Passw0rd
         echo "Flyway migration completed for SSC_Dev"
