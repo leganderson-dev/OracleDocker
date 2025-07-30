@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   init-db:
@@ -19,19 +20,23 @@ jobs:
       - name: Run MSSQL container
         run: docker run -d --name mssql -p 1433:1433 mssql-init
 
-      - name: Wait for SQL Server to initialize
+      - name: Wait for SQL Server to become ready
         run: |
           echo "Waiting for SQL Server to become ready..."
-          for i in {1..30}; do
+          for i in {1..40}; do
+            docker logs mssql 2>&1 | tail -20
             if docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT 1" &>/dev/null; then
-              echo "SQL Server is ready!"
+              echo "✅ SQL Server is ready!"
               exit 0
             fi
+            echo "⏳ Still waiting... ($i/40)"
             sleep 5
           done
-          echo "SQL Server did not start in time" >&2
+          echo "❌ SQL Server did not start in time" >&2
+          docker logs mssql
           exit 1
 
-      - name: Verify DB and Table
+      - name: Confirm database and table
         run: |
-          docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "USE SSC_Dev; SELECT * FROM sys.tables"
+          echo "🧪 Verifying database and table..."
+          docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "USE SSC_Dev; SELECT name FROM sys.tables;"
