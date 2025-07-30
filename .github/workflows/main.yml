@@ -1,41 +1,33 @@
-name: MSSQL Restore - SSC_Dev
+name: MSSQL Restore Demo
 
 on:
-  push:
-    branches:
-    - main
+  workflow_dispatch:
+
 
 jobs:
-  restore-mssql:
+  restore-db:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
+    - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Build custom MSSQL Docker image
+    - name: Build SQL Server Docker image with backup
       run: |
-        docker build -t custom-mssql-restored .
+        docker build -t mssql-ssc-dev -f Dockerfile .
 
-    - name: Run MSSQL Container
+    - name: Run SQL Server container
       run: |
         docker run -d --name mssql-container \
           -e 'ACCEPT_EULA=Y' \
           -e 'SA_PASSWORD=Redg@te1' \
           -p 1433:1433 \
-          custom-mssql-restored
+          mssql-ssc-dev
 
-    - name: Wait for SQL Server to be available
+    - name: Wait for SQL Server and run restore script
       run: |
-        echo "Waiting for SQL Server to be available..."
-        for i in {1..30}; do
-          docker exec mssql-container sqlcmd -S localhost -U SA -P "Redg@te1" -Q "SELECT name FROM sys.databases" && break
-          echo "Retry $i..."
-          sleep 5
-        done
+        docker exec mssql-container /bin/bash /tmp/restore.sh
 
-    - name: Verify SSC_Dev exists
+    - name: Show restored database list (confirmation)
       run: |
-        docker exec mssql-container sqlcmd \
-          -S localhost -U SA -P "Redg@te1" \
-          -Q "SELECT name FROM sys.databases WHERE name = 'SSC_Dev'"
+        docker exec mssql-container /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT name FROM sys.databases"

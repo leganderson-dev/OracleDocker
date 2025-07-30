@@ -1,28 +1,41 @@
-# Stage 1: Build sqlcmd tools in an Ubuntu base
-FROM ubuntu:20.04 as tools
+# ============================
+# Stage 1 - Build tools image
+# ============================
+FROM mcr.microsoft.com/mssql/server:2022-latest AS tools
 
-ENV DEBIAN_FRONTEND=noninteractive
+USER root
 
+# Install dependencies and sqlcmd
 RUN apt-get update && apt-get install -y curl gnupg apt-transport-https \
-  && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-  && curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-  && apt-get update && ACCEPT_EULA=Y apt-get install -y mssql-tools unixodbc-dev \
-  && apt-get clean
+    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update && ACCEPT_EULA=Y apt-get install -y mssql-tools unixodbc-dev \
+    && apt-get clean
 
-# Stage 2: Build final SQL Server image
-FROM mcr.microsoft.com/mssql/server:2022-latest
+# =============================
+# Stage 2 - Main MSSQL Image
+# =============================
+FROM mcr.microsoft.com/mssql/server:2022-latest AS final
 
 ENV ACCEPT_EULA=Y
-ENV SA_PASSWORD=Redg@te1
+ENV MSSQL_SA_PASSWORD=Redg@te1
+ENV MSSQL_PID=Developer
 
-# Copy SQLCMD tools from previous stage
+USER root
+
+# Copy tools from builder stage
 COPY --from=tools /opt/mssql-tools /opt/mssql-tools
-COPY --from=tools /usr/bin/sqlcmd /usr/bin/sqlcmd
-COPY --from=tools /usr/bin/bcp /usr/bin/bcp
+COPY --from=tools /opt/mssql-tools/bin/sqlcmd /usr/bin/sqlcmd
+COPY --from=tools /opt/mssql-tools/bin/bcp /usr/bin/bcp
 
-# Copy backup file and restore script
-COPY BKP/SSC.bak /var/opt/mssql/backup/SSC.bak
+# Copy restore script and backup file
 COPY restore.sh /restore.sh
+COPY SSC_Prod.bak /var/opt/mssql/backups/SSC_Prod.bak
+
 RUN chmod +x /restore.sh
 
-CMD [ "/bin/bash", "/restore.sh" ]
+# Make sure the backup directory exists
+RUN mkdir -p /var/opt/mssql/backups
+
+# Run SQL Server and restore in background
+CMD /bin/bash -c "/opt/mssql/bin/sqlservr & sleep 20 && /restore.sh && tail -f /dev/null"
