@@ -78,3 +78,8 @@ jobs:
       run: |
         /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong@Passw0rd' -i createdb.sql -b
         echo "Successfully executed createdb.sql"
+
+    - name: List all databases
+      run: |
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourStrong@Passw0rd' -Q "SELECT name FROM sys.databases" -b
+        echo "Listed all databases"
