@@ -93,6 +93,6 @@ jobs:
           redgate/flyway:latest \
           -url=jdbc:sqlserver://mssql:1433;databaseName=SSC_Dev;encrypt=false;trustServerCertificate=true" \
           -user=SA \
-          -password=YourStrong@Passw0rd
+          -password=YourStrong@Passw0rd \
           -locations="filesystem:/flyway/sql" \
           info migrate info
