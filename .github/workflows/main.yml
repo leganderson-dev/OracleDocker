@@ -85,12 +85,14 @@ jobs:
         echo "Listed all databases"
 
     - name: Run Flyway migration on SSC_Dev
-      run: |
+      run: |+
         docker run --rm --network mssql-network \
-          -v $(pwd)/sql:/flyway/sql \
+          -v "${{ github.workspace }}/migrations:/flyway/sql" \
+          -v "${{ github.workspace }}:/flyway/conf:ro" \
+          -v "${{ github.workspace }}/reports:/flyway/reports" \
           redgate/flyway:latest \
-          migrate \
-          -url=jdbc:sqlserver://mssql:1433;databaseName=SSC_Dev \
+          -url=jdbc:sqlserver://mssql:1433;databaseName=SSC_Dev;encrypt=false;trustServerCertificate=true" \
           -user=SA \
           -password=YourStrong@Passw0rd
-        echo "Flyway migration completed for SSC_Dev"
+          -locations="filesystem:/flyway/sql" \
+          info migrate info

@@ -1,0 +1,12 @@
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO
+CREATE PROCEDURE [dbo].[prcGetContacts]
+AS
+SET NOCOUNT ON
+    SELECT  *
+    FROM    Contacts
+
+	-- v7
+GO

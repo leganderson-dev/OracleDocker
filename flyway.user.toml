@@ -1,0 +1,20 @@
+[environments.Prod]
+user = "redgate"
+password = "${localSecret.Flyway Desktop 8b99bb58-2626-4201-9642-bcba578ab55b}"
+
+[environments.Check]
+user = "redgate"
+password = "${localSecret.Flyway Desktop c9524e63-095b-4c2a-8ecb-625d5baed22f}"
+
+[environments.development]
+url = "jdbc:sqlserver://andersonmanagedinstance.public.a1e629225940.database.windows.net:3342;authentication=sqlPassword;databaseName=SSC_Dev;encrypt=false;trustServerCertificate=true"
+user = "redgate"
+password = "${localSecret.Flyway Desktop 5d0bf3c7-e60d-42f6-bd9c-88e01dbb1cea}"
+displayName = "Development database"
+
+[environments.shadow]
+url = "jdbc:sqlserver://andersonmanagedinstance.public.a1e629225940.database.windows.net:3342;authentication=sqlPassword;databaseName=SSC_Shadow;encrypt=false;trustServerCertificate=true"
+user = "redgate"
+password = "${localSecret.Flyway Desktop 22a82f8d-73c8-4fad-bc1f-078009002e23}"
+displayName = "Shadow database"
+provisioner = "clean"
