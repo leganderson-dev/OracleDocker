@@ -1,4 +1,4 @@
-name: MSSQL Init
+name: MSSQL Init with SQL Script
 
 on:
   push:
@@ -14,11 +14,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Build MSSQL Docker image
+      - name: Build Docker image with MSSQL and SQL script
         run: docker build -t mssql-init .
 
-      - name: Run MSSQL container
-        run: docker run -d --name mssql -p 1433:1433 mssql-init
+      - name: Start MSSQL container
+        run: |
+          docker run -d --name mssql -p 1433:1433 mssql-init
 
       - name: Wait for SQL Server to become ready
         run: |
@@ -36,7 +37,7 @@ jobs:
           docker logs mssql
           exit 1
 
-      - name: Confirm database and table
+      - name: Verify SSC_Dev database exists
         run: |
-          echo "🧪 Verifying database and table..."
-          docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "USE SSC_Dev; SELECT name FROM sys.tables;"
+          echo "🔎 Verifying created database..."
+          docker exec mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Redg@te1' -Q "SELECT name FROM sys.databases WHERE name = 'SSC_Dev'"
