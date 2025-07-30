@@ -115,3 +115,30 @@ jobs:
           info migrate info
           
         echo "Flyway migration completed for SSC_Dev"
+
+    - name: Run Flyway Check
+      run: |
+        docker run --rm --network mssql-network \
+          -v "${{ github.workspace }}/migrations:/flyway/sql" \
+          -v "${{ github.workspace }}:/flyway/conf:ro" \
+          -v "${{ github.workspace }}/schema-model:/flyway/schema-model" \
+          -v "${{ github.workspace }}/reports:/flyway/reports" \
+          ${FLYWAY_IMAGE} \
+          -url="jdbc:sqlserver://${FLYWAY_HOST}:${FLYWAY_PORT};databaseName=${FLYWAY_DATABASE};encrypt=${FLYWAY_ENCRYPT};trustServerCertificate=${FLYWAY_TRUST_CERT}" \
+          -user="${FLYWAY_USER}" \
+          -password="${FLYWAY_PASSWORD}" \
+          -locations="filesystem:/flyway/sql" \
+          -email="${FLYWAY_EMAIL}" \
+          -token="${FLYWAY_TOKEN}" \
+          auth -IAgreeToTheEula \
+          check -changes \
+            -workingDirectory=/flyway \
+            -schemaModelLocation=schema-model \
+            -check.buildEnvironment=Check \
+            -reportFilename=reports/check-report-${{ github.run_number }}.html
+
+    - name: Upload Flyway Check Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: flyway-check-${{ github.run_number }}
+        path: "${{ github.workspace }}/reports/check-report-${{ github.run_number }}.html"
