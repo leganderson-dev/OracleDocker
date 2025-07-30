@@ -91,7 +91,7 @@ jobs:
           -v "${{ github.workspace }}:/flyway/conf:ro" \
           -v "${{ github.workspace }}/reports:/flyway/reports" \
           redgate/flyway:latest \
-          -url=jdbc:sqlserver://mssql:1433;databaseName=SSC_Dev;encrypt=false;trustServerCertificate=true" \
+          -url=jdbc:sqlserver://mssql:1433;databaseName=SSC_Dev;encrypt=false;trustServerCertificate=true \
           -user=SA \
           -password=YourStrong@Passw0rd \
           -locations="filesystem:/flyway/sql" \
