@@ -111,6 +111,7 @@ jobs:
           -email="${FLYWAY_EMAIL}" \
           -token="${FLYWAY_TOKEN}" \
           auth -IAgreeToTheEula \
+          -target="005.20250206193751" \
           info migrate info
           
         echo "Flyway migration completed for SSC_Dev"
