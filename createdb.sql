@@ -1,1 +1,1 @@
-create database SSC
+create database SSC_Dev

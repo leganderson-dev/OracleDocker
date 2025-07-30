@@ -1,36 +1,28 @@
-name: MSSQL Init Container
+name: MSSQL Init
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  mssql-init:
+  build-and-run:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build MSSQL Docker image
+      - name: Build Docker image
         run: docker build -t mssql-init .
 
       - name: Run MSSQL container
         run: |
           docker run -d --name mssql-init \
-            -e 'ACCEPT_EULA=Y' \
-            -e 'SA_PASSWORD=Redg@te1' \
+            -e "ACCEPT_EULA=Y" \
+            -e "SA_PASSWORD=Redg@te1" \
             -p 1433:1433 \
             mssql-init
 
-      - name: Wait for SQL Server to be ready
-        run: |
-          echo "Waiting for SQL Server to start..."
-          for i in {1..30}; do
-            docker exec mssql-init /opt/mssql-tools/bin/sqlcmd \
-              -S localhost -U SA -P 'Redg@te1' -Q "SELECT 1" && break
-            sleep 5
-          done
-
-      - name: Show SQL Server logs
+      - name: Check container logs
         run: docker logs mssql-init
