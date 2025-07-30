@@ -10,7 +10,7 @@ env:
   FLYWAY_TOKEN: iaDF3IS+rC5+U6mfk5MY62cH6KyDWWwktQCQUXZqOLIzBVi2WAfEFIYTRzq8zkMst0xyCli7L++Kw5RXdin/Uw==
   FLYWAY_IMAGE: redgate/flyway:latest
 
-  FLYWAY_HOST: localhost
+  FLYWAY_HOST: mssql
   FLYWAY_DATABASE: SSC_Dev
   FLYWAY_PORT: 1433
   FLYWAY_ENCRYPT: true
