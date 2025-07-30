@@ -2,10 +2,11 @@ FROM mcr.microsoft.com/mssql/server:2022-latest
 
 ENV ACCEPT_EULA=Y
 ENV SA_PASSWORD=Redg@te1
+ENV MSSQL_PID=Developer
 
-# Switch to root to install tools
-USER root
+USER root  # <-- Add this line
 
+# Install sqlcmd
 RUN apt-get update && apt-get install -y curl gnupg apt-transport-https \
   && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
   && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
@@ -14,15 +15,7 @@ RUN apt-get update && apt-get install -y curl gnupg apt-transport-https \
   && ln -s /opt/mssql-tools/bin/bcp /usr/bin/bcp \
   && apt-get clean
 
-# Switch back to default SQL Server user
-USER mssql
+COPY ./restore.sh /restore.sh
+RUN chmod +x /restore.sh
 
-# Copy backup file
-COPY BKP/SSC.bak /var/opt/mssql/backup/SSC.bak
-
-# Start SQL Server and restore the database
-CMD /opt/mssql/bin/sqlservr & \
-    sleep 30 && \
-    sqlcmd -S localhost -U SA -P 'Redg@te1' \
-    -Q "RESTORE DATABASE SSC_Dev FROM DISK = '/var/opt/mssql/backup/SSC.bak' WITH REPLACE, MOVE 'SSC' TO '/var/opt/mssql/data/SSC_Dev.mdf', MOVE 'SSC_log' TO '/var/opt/mssql/data/SSC_Dev_log.ldf'" \
-    && tail -f /dev/null
+CMD /bin/bash /restore.sh
