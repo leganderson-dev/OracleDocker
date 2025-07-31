@@ -135,7 +135,9 @@ jobs:
             -workingDirectory=/flyway \
             -schemaModelLocation=schema-model \
             -environment=${DEPLOY_ENVIRONMENT} \
-            -check.buildEnvironment=Check \
+            -check.buildUrl="jdbc:sqlserver://mssql:1433;databaseName=SSC_Check;encrypt=false;integratedSecurity=false \
+            -check.buildUser=sa \
+            -check.buildPassword=YourStrong@Passw0rd \
             -reportFilename=reports/check-report-${{ github.run_number }}.html
 
     - name: Upload Flyway Check Report
