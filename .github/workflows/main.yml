@@ -134,7 +134,6 @@ jobs:
           check -changes \
             -workingDirectory=/flyway \
             -schemaModelLocation=schema-model \
-            -environment=${DEPLOY_ENVIRONMENT} \
             -check.buildUrl="jdbc:sqlserver://mssql:1433;databaseName=SSC_Check;encrypt=false;integratedSecurity=false \
             -check.buildUser=sa \
             -check.buildPassword=YourStrong@Passw0rd \
