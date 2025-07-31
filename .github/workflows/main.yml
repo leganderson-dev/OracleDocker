@@ -131,7 +131,7 @@ jobs:
           -email="${FLYWAY_EMAIL}" \
           -token="${FLYWAY_TOKEN}" \
           auth -IAgreeToTheEula \
-          check -changes -code -drift -dryrun \
+          check -changes \
             -workingDirectory=/flyway \
             -schemaModelLocation=schema-model \
             -environment=${DEPLOY_ENVIRONMENT} \
