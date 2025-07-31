@@ -12,11 +12,13 @@ env:
 
   FLYWAY_HOST: mssql
   FLYWAY_DATABASE: SSC_Dev
+  FLYWAY_DATABASE_CHECK: SSC_Check
   FLYWAY_USER: sa
   FLYWAY_PASSWORD: YourStrong@Passw0rd
   FLYWAY_PORT: 1433
   FLYWAY_ENCRYPT: true
   FLYWAY_TRUST_CERT: true
+  TARGET: "008.20250724183138"
 
   
 jobs:
@@ -111,7 +113,7 @@ jobs:
           -email="${FLYWAY_EMAIL}" \
           -token="${FLYWAY_TOKEN}" \
           auth -IAgreeToTheEula \
-          -target="005.20250206193751" \
+          -target="${TARGET}" \
           info migrate info
           
         echo "Flyway migration completed for SSC_Dev"
@@ -134,11 +136,13 @@ jobs:
           check -changes \
             -workingDirectory=/flyway \
             -schemaModelLocation=schema-model \
-            -check.buildUrl="jdbc:sqlserver://mssql:1433;databaseName=SSC_Check;encrypt=false;integratedSecurity=false" \
-            -check.buildUser=sa \
-            -check.buildPassword=YourStrong@Passw0rd \
+            -check.buildUrl="jdbc:sqlserver://${FLYWAY_HOST}:${FLYWAY_PORT};databaseName=${FLYWAY_DATABASE_CHECK};encrypt=${FLYWAY_ENCRYPT};trustServerCertificate=${FLYWAY_TRUST_CERT}" \
+            -check.buildUser=${FLYWAY_USER} \
+            -check.buildPassword=${FLYWAY_PASSWORD} \
             -cleanDisabled=false \
             -reportFilename=reports/check-report-${{ github.run_number }}.html
+
+            
 
     - name: Upload Flyway Check Report
       uses: actions/upload-artifact@v4
