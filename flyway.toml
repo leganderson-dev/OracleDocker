@@ -126,7 +126,7 @@ transportClrDataTypesAsBinary = false
 url = "jdbc:sqlserver://andersonmanagedinstance.public.a1e629225940.database.windows.net:3342;authentication=sqlPassword;databaseName=SSC_Prod;encrypt=true;trustServerCertificate=true"
 
 [environments.Check]
-url = "jdbc:sqlserver://andersonmanagedinstance.public.a1e629225940.database.windows.net:3342;authentication=sqlPassword;databaseName=SSC_Check;encrypt=false;trustServerCertificate=true"
+url = "jdbc:sqlserver://mssql:1433;authentication=sqlPassword;databaseName=SSC_Check;encrypt=false;trustServerCertificate=true"
 user = "sa"
 password = "YourStrong@Passw0rd"
 provisioner = "clean"
