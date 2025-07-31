@@ -137,6 +137,7 @@ jobs:
             -check.buildUrl="jdbc:sqlserver://mssql:1433;databaseName=SSC_Check;encrypt=false;integratedSecurity=false" \
             -check.buildUser=sa \
             -check.buildPassword=YourStrong@Passw0rd \
+            -cleanDisabled=false \
             -reportFilename=reports/check-report-${{ github.run_number }}.html
 
     - name: Upload Flyway Check Report
