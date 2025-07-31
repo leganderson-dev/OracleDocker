@@ -140,9 +140,7 @@ jobs:
             -check.buildUser=${FLYWAY_USER} \
             -check.buildPassword=${FLYWAY_PASSWORD} \
             -cleanDisabled=false \
-            -reportFilename=reports/check-report-${{ github.run_number }}.html
-
-            
+            -reportFilename=reports/check-report-${{ github.run_number }}.html  
 
     - name: Upload Flyway Check Report
       uses: actions/upload-artifact@v4
